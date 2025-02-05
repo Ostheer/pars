@@ -75,7 +75,11 @@ fn process_line(mut line: String, op_specs: &Vec<&str>, op_args: &Vec<Vec<&Strin
         if op.is_err() {
             return Err(op.err().unwrap());
         }
-        line = op.unwrap().process(&line);
+        let new_line = op.unwrap().process(&line);
+        if new_line.is_ok() {
+            // TODO: add cmdline flag to decide what should happen here? either panic, skip line altogether, or ignore the operation like is done now.
+            line = new_line.unwrap();
+        }
     }
     return Ok(line)
 }

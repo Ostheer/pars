@@ -13,7 +13,7 @@ macro_rules! declare_operations_enum {
 macro_rules! impl_operation_for_enum {
     ($enum_name:ident, $($variant:ident),*) => {
         impl Operation for $enum_name {
-            fn process(&self, input: &str) -> String {
+            fn process(&self, input: &str) -> Result<String, String> {
                 match self {
                     $(Self::$variant(op) => op.process(input),)*
                 }

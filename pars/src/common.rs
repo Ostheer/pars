@@ -1,5 +1,5 @@
 pub trait Operation {
-    fn process(&self, input: &str) -> String;
+    fn process(&self, input: &str) -> Result<String, String>;
     fn num_args(&self) -> usize {
         0
     }

@@ -7,8 +7,8 @@ pub struct Upper;
 impl_createoperation_default!(Upper);
 
 impl Operation for Upper {
-    fn process(&self, input: &str) -> String {
-        input.to_uppercase()
+    fn process(&self, input: &str) -> Result<String, String> {
+        Ok(input.to_uppercase())
     }
 }
 
@@ -18,8 +18,8 @@ pub struct Lower;
 impl_createoperation_default!(Lower);
 
 impl Operation for Lower {
-    fn process(&self, input: &str) -> String {
-        input.to_lowercase()
+    fn process(&self, input: &str) -> Result<String, String> {
+        Ok(input.to_lowercase())
     }
 }
 
@@ -54,12 +54,12 @@ impl CreateOperation for Split {
 }
 
 impl Operation for Split {
-    fn process(&self, input: &str) -> String {
-        input
-            .split(&self.sep)
-            .nth(self.index)
-            .expect("Out of bounds")
-            .to_string()
+    fn process(&self, input: &str) -> Result<String, String> {
+        let maybe_elem = input.split(&self.sep).nth(self.index);
+        match maybe_elem {
+            Some(elem) => Ok(elem.to_string()),
+            None => Err("Out of bounds".to_string())
+        }
     }
 
     fn num_args(&self) -> usize {
@@ -92,8 +92,8 @@ impl CreateOperation for Replace {
 }
 
 impl Operation for Replace {
-    fn process(&self, input: &str) -> String {
-        input.replace(&self.old, &self.new)
+    fn process(&self, input: &str) -> Result<String, String> {
+        Ok(input.replace(&self.old, &self.new))
     }
 
     fn num_args(&self) -> usize {
@@ -136,8 +136,8 @@ impl CreateOperation for Replacen {
 }
 
 impl Operation for Replacen {
-    fn process(&self, input: &str) -> String {
-        input.replacen(&self.replace.old, &self.replace.new, self.n)
+    fn process(&self, input: &str) -> Result<String, String> {
+        Ok(input.replacen(&self.replace.old, &self.replace.new, self.n))
     }
 
     fn num_args(&self) -> usize {
