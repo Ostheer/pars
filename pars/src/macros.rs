@@ -32,8 +32,8 @@ macro_rules! impl_operation_for_enum {
 macro_rules! impl_createoperation_default {
     ($struct_name:ident) => {
         impl CreateOperation for $struct_name {
-            fn from_args(_args: &[&String]) -> Self {
-                Self
+            fn from_args(_args: &[&String]) -> Result<Self, String> {
+                Ok(Self)
             }
         
             fn from_nothing() -> Self {
@@ -46,6 +46,15 @@ macro_rules! impl_createoperation_default {
 #[macro_export]
 macro_rules! create_op_matchcase {
     ($enum_option:ident, $dummy:ident, $args:ident) => {
-        if $dummy {Operations::$enum_option($enum_option::from_nothing())} else {Operations::$enum_option($enum_option::from_args($args))}
+        if $dummy {
+            Ok(Operations::$enum_option($enum_option::from_nothing()))
+        }
+        else {
+            let e_o = $enum_option::from_args($args);
+            if e_o.is_err() {
+                return Err(e_o.err().unwrap())
+            }
+            Ok(Operations::$enum_option(e_o.unwrap()))
+        }
     };
 }

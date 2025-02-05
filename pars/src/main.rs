@@ -13,7 +13,7 @@ use crate::opdefs::{Upper, Lower, Split, Replace, Replacen};
 declare_operations_enum!(Operations, Upper, Lower, Split, Replace, Replacen);
 impl_operation_for_enum!(Operations, Upper, Lower, Split, Replace, Replacen);
 
-fn _create_op(op_spec: &str, dummy: bool, args: &Vec<&String>) -> impl Operation {
+fn _create_op(op_spec: &str, dummy: bool, args: &Vec<&String>) -> Result<impl Operation, String> {
     match op_spec {
         "upper" => create_op_matchcase!(Upper, dummy, args),
         "lower" => create_op_matchcase!(Lower, dummy, args),
@@ -24,13 +24,13 @@ fn _create_op(op_spec: &str, dummy: bool, args: &Vec<&String>) -> impl Operation
     }
 }
 fn get_num_args(op_spec: &str) -> usize {
-    _create_op(op_spec, true,&Vec::new()).num_args()
+    _create_op(op_spec, true,&Vec::new()).unwrap().num_args()
 }
-fn get_operation(op_spec: &str, args: &Vec<&String>) -> impl Operation {
-    _create_op(op_spec, false, args)
+fn get_operation(op_spec: &str, args: &Vec<&String>) -> Result<impl Operation, String> {
+    _create_op(op_spec, false, args).map_err(|s| "Invalid operation parameters: ".to_string() + &s)
 }
 
-fn main(){
+fn main() -> Result<(), String>{
     let args: Vec<String> = env::args().collect();
     let mut i: usize = 1;
     let mut op_args: Vec<Vec<&String>> = Vec::new();
@@ -50,23 +50,32 @@ fn main(){
             break
         }
     }
-    println!("{op_args:?}");
 
     let stdin = io::stdin();
     for line in stdin.lines(){
-        match line {
+        let maybe_line = match line {
             Ok(text) => process_line(text, &op_specs, &op_args),
-            Err(_e) => return
+            Err(_e) => break
+        };
+        if maybe_line.is_err() {
+            return Err(maybe_line.err().unwrap())
+        }
+        else {
+            let real_line = maybe_line.unwrap();
+            println!("{real_line}");
         }
     }
+    Ok(())
 }
 
 
-fn process_line(mut line: String, op_specs: &Vec<&str>, op_args: &Vec<Vec<&String>>) {
+fn process_line(mut line: String, op_specs: &Vec<&str>, op_args: &Vec<Vec<&String>>) -> Result<String, String>{
     for (os, oa) in zip(op_specs, op_args) {
         let op = get_operation(os, &oa);
-        line = op.process(&line);
-        
+        if op.is_err() {
+            return Err(op.err().unwrap());
+        }
+        line = op.unwrap().process(&line);
     }
-    println!("{line}");
+    return Ok(line)
 }

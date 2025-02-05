@@ -30,13 +30,19 @@ pub struct Split {
 }
 
 impl CreateOperation for Split {
-    fn from_args(args: &[&String]) -> Self {
+    fn from_args(args: &[&String]) -> Result<Self, String> {
         let sep = args[0];
-        let index = args[1].parse::<usize>().expect("Second argument to Split must be an integer.");
-        Self {
-            sep: sep.to_string(),
-            index,
+        let index = args[1].parse::<usize>();
+        if index.is_err() {
+            return Err("Second argument to Split must be an integer.".to_string())
         }
+        
+        Ok(
+            Self {
+                sep: sep.to_string(),
+                index: index.unwrap(),
+            }
+        )
     }
 
     fn from_nothing() -> Self {
@@ -68,11 +74,13 @@ pub struct Replace {
 }
 
 impl CreateOperation for Replace {
-    fn from_args(args: &[&String]) -> Self {
-        Self {
-            old: args[0].to_string(),
-            new: args[1].to_string()
-        }
+    fn from_args(args: &[&String]) -> Result<Self, String> {
+        Ok(
+            Self {
+                old: args[0].to_string(),
+                new: args[1].to_string()
+            }
+        )
     }
 
     fn from_nothing() -> Self {
@@ -100,11 +108,23 @@ pub struct Replacen {
 }
 
 impl CreateOperation for Replacen {
-    fn from_args(args: &[&String]) -> Self {
-        Self {
-            replace: Replace::from_args(&args[0..2]),
-            n: args[2].parse::<usize>().expect("must be int")
+    fn from_args(args: &[&String]) -> Result<Self, String> {
+        let n = args[2].parse::<usize>();
+        if n.is_err() {
+            return Err("Argument must be integer".to_string())
         }
+
+        let replace = Replace::from_args(&args[0..2]);
+        if replace.is_err() {
+            return Err(replace.err().unwrap())
+        }
+
+        Ok(
+            Self {
+                replace: replace.unwrap(),
+                n: n.unwrap()
+            }
+        )
     }
 
     fn from_nothing() -> Self {
